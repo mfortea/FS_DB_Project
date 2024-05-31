@@ -1,27 +1,33 @@
-# Target executable
-TARGET = test
-
 # Compiler
+CXX = g++
 CC = gcc
 
 # Compilation options
-CFLAGS = -Wall -g -ILittleD/src
+CXXFLAGS = -Wall -g -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi -I/usr/include/libbson-1.0 -I/usr/include/mysql -I/usr/include/curl
+CFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl
 
-# Necessary object files
-OBJECTS = LittleD/bin/lib/*.o
+# Linker options
+LDFLAGS = -L/usr/local/lib -lmongocxx -lbsoncxx -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lcurl
 
-# Build the executable
-$(TARGET): $(OBJECTS) test.o
-	$(CC) $(CFLAGS) -o $(TARGET) test.o $(OBJECTS)
-
+# Build the test executable
+test: test.o LittleD/bin/lib/*.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 LittleD/bin/lib/%.o: LittleD/src/dbparser/%.c LittleD/src/dbparser/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Build the benchmark executable
+benchmark: benchmark.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
 # Build test object
 test.o: test.c
-	$(CC) $(CFLAGS) -c test.c -o test.o
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Build benchmark object
+benchmark.o: benchmark.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Clean up
 clean:
-	rm -f $(TARGET) test.o sensors
+	rm -f test benchmark *.o sensors
