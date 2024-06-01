@@ -1,15 +1,30 @@
 #include <iostream>
 #include <chrono>
+
+// For time
+using namespace std;
+using namespace std::chrono;
+
+// For MariaDB
+#include <mysql/mysql.h>
+#include <curl/curl.h>
+
+// For MongoDB
 /**
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
 #include <mongocxx/uri.hpp>
-*/
-#include <mysql/mysql.h>
-#include <curl/curl.h>
+#include <bsoncxx/json.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_document;
+using bsoncxx::builder::stream::close_document;
 
-using namespace std;
-using namespace std::chrono;
+// For LittleD
+#include "LittleD/src/dbparser/dbparser.h" 
+#include "LittleD/src/dbops/db_ops.h"
+*/
 
 // Funciones para medir el tiempo
 #define START_TIMER { auto __start__ = high_resolution_clock::now();
@@ -17,8 +32,7 @@ using namespace std::chrono;
                        auto __duration__ = duration_cast<microseconds>(__end__ - __start__).count(); \
                        cout << msg << " took " << __duration__ << " microseconds." << endl; }
 
-// MongoDB CRUD
-/*
+/**
 void test_mongodb() {
     mongocxx::instance inst{};
     mongocxx::client conn{mongocxx::uri{}};
@@ -27,10 +41,10 @@ void test_mongodb() {
 
     // Insert
     START_TIMER
-    bsoncxx::builder::stream::document document{};
+    document document{};
     document << "name" << "test" << "value" << 1;
     collection.insert_one(document.view());
-    END_TIMER("MongoDB Insert")
+    END_TIMER("\n-> \n-> MongoDB Insert")
 
     // Read
     START_TIMER
@@ -38,18 +52,18 @@ void test_mongodb() {
     for (auto&& doc : cursor) {
         cout << bsoncxx::to_json(doc) << endl;
     }
-    END_TIMER("MongoDB Read")
+    END_TIMER("\n-> MongoDB Read")
 
     // Update
     START_TIMER
-    collection.update_one(bsoncxx::builder::stream::document{} << "name" << "test" << bsoncxx::builder::stream::finalize,
-                          bsoncxx::builder::stream::document{} << "$set" << bsoncxx::builder::stream::open_document << "value" << 2 << bsoncxx::builder::stream::close_document << bsoncxx::builder::stream::finalize);
-    END_TIMER("MongoDB Update")
+    collection.update_one(document{} << "name" << "test" << finalize,
+                          document{} << "$set" << open_document << "value" << 2 << close_document << finalize);
+    END_TIMER("\n-> MongoDB Update")
 
     // Delete
     START_TIMER
-    collection.delete_one(bsoncxx::builder::stream::document{} << "name" << "test" << bsoncxx::builder::stream::finalize);
-    END_TIMER("MongoDB Delete")
+    collection.delete_one(document{} << "name" << "test" << finalize);
+    END_TIMER("\n-> MongoDB Delete")
 }
 */
 
@@ -73,7 +87,7 @@ void test_mariadb() {
     if (mysql_query(conn, "INSERT INTO testtable (name, value) VALUES('test', 1)")) {
         cerr << "INSERT failed: " << mysql_error(conn) << endl;
     }
-    END_TIMER("MariaDB Insert")
+    END_TIMER("\n-> MariaDB Insert")
 
     // Read
     START_TIMER
@@ -91,21 +105,21 @@ void test_mariadb() {
             mysql_free_result(res);
         }
     }
-    END_TIMER("-> MariaDB Read")
+    END_TIMER("\n-> MariaDB Read")
 
     // Update
     START_TIMER
     if (mysql_query(conn, "UPDATE testtable SET value=2 WHERE name='test'")) {
         cerr << "UPDATE failed: " << mysql_error(conn) << endl;
     }
-    END_TIMER("-> MariaDB Update")
+    END_TIMER("\n-> MariaDB Update")
 
     // Delete
     START_TIMER
     if (mysql_query(conn, "DELETE FROM testtable WHERE name='test'")) {
         cerr << "DELETE failed: " << mysql_error(conn) << endl;
     }
-    END_TIMER("-> MariaDB Delete")
+    END_TIMER("\n-> MariaDB Delete")
 
     mysql_close(conn);
 }
@@ -154,12 +168,69 @@ void test_influxdb() {
     curl_global_cleanup();
 }
 
+// LittleD CRUD
+/*
+void test_littledb() {
+    const int BYTES_LEN = 400;
+    char memseg[BYTES_LEN];
+    db_query_mm_t mm;
+    db_op_base_t* root;
+    db_tuple_t tuple;
+
+    init_query_mm(&mm, memseg, BYTES_LEN);
+    // Create Table
+    START_TIMER
+    parse(const_cast<char*>("CREATE TABLE testtable (name STRING, value INT);"), &mm);
+    END_TIMER("\n-> LittleD Create Table")
+
+    // Insert
+    START_TIMER
+    parse(const_cast<char*>("INSERT INTO testtable VALUES ('test', 1);"), &mm);
+    END_TIMER("\n-> LittleD Insert")
+
+    // Read
+    START_TIMER
+    init_query_mm(&mm, memseg, BYTES_LEN);
+    root = parse(const_cast<char*>("SELECT * FROM testtable;"), &mm);
+
+    if (root != NULL) {
+        init_tuple(&tuple, root->header->tuple_size, root->header->num_attr, &mm);
+
+        while (next(root, &tuple, &mm) == 1) {
+            cout << "Row: ";
+            for (int i = 0; i < root->header->num_attr; i++) {
+                char* attr_name = root->header->names[i];
+                cout << attr_name << ": " << getstringbyname(&tuple, attr_name, root->header) << ", ";
+            }
+            cout << endl;
+        }
+    } else {
+        cerr << "Read failed: NULL root" << endl;
+    }
+    END_TIMER("\n-> LittleD Read")
+
+    // Delete
+    START_TIMER
+    parse(const_cast<char*>("DELETE FROM testtable WHERE name = 'test';"), &mm);
+    END_TIMER("\n-> LittleD Delete")
+}
+*/
+
 int main() {
-    cout << "Testing MongoDB..." << endl;
+    cout << "\n**** Testing MongoDB *****" << endl;
     //test_mongodb();
-    cout << "\nTesting MariaDB..." << endl;
+    cout << "\n-----------------------------------------" << endl;
+
+    cout << "\n**** Testing MariaDB ****" << endl;
     test_mariadb();
-    cout << "\nTesting InfluxDB..." << endl;
+    cout << "\n-----------------------------------------" << endl;
+
+    cout << "\n**** Testing InfluxDB ****" << endl;
     test_influxdb();
+    cout << "\n-----------------------------------------" << endl;
+
+    cout << "\n**** Testing LittleD ****" << endl;
+    //test_littledb();
+    cout << "\n-----------------------------------------" << endl;
     return 0;
 }

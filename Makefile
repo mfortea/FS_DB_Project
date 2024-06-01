@@ -3,11 +3,11 @@ CXX = g++
 CC = gcc
 
 # Compilation options
-CXXFLAGS = -Wall -g -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi -I/usr/include/libbson-1.0 -I/usr/include/mysql -I/usr/include/curl
+CXXFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl
 CFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl
 
 # Linker options
-LDFLAGS = -L/usr/local/lib -lmongocxx -lbsoncxx -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lcurl
+LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lcurl
 
 # Build the test executable
 test: test.o LittleD/bin/lib/*.o
@@ -17,7 +17,7 @@ LittleD/bin/lib/%.o: LittleD/src/dbparser/%.c LittleD/src/dbparser/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Build the benchmark executable
-benchmark: benchmark.o
+benchmark: benchmark.o 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Build test object
