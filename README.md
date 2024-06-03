@@ -9,15 +9,29 @@ File Systems and DB on Linux Project for the course Operating Systems of the HMU
 
 # 🧪 Makefile
 You need to run the makefile of LittleD before, the library has to be in the same folder as the rest of the code.
-For compile the test.c (LittleD test code)
+
+For compile the benchmark for LittleD, you have to run:
 ```
-make test
+make littled
 ```
 
-For compile the benchmark.c (all the databases benchmark)
+For compile the benchmark for the rest of the databases, you have to run:
 ```
 make benchmark
 ```
+
+# 🚀 Run the code
+For run the benchmark for LittleD, you have to run:
+```bash
+./littled
+```
+
+And for the benchmark for MongoDB, MariaDB & InfluxDB:
+```bash
+./benchmark
+```
+This will generate a file called results.txt with the results of the test for the three databases
+
 
 # 📊 Databases benchmark data
 ## For MongoDB
