@@ -18,3 +18,31 @@ For compile the benchmark.c (all the databases benchmark)
 ```
 make benchmark
 ```
+
+# 📊 Databases benchmark data
+## For MongoDB
+```bash
+$ mongo
+> use testdb
+> db.createCollection("testcollection")
+```
+
+## For MariaDB
+```sql
+CREATE DATABASE testdb;
+USE testdb;
+CREATE TABLE testtable (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    value INT
+);
+```
+
+## For InfluxDB
+```bash
+$ influx
+Connected to http://localhost:8086 version 1.x.x
+InfluxDB shell version: 1.x.x
+> CREATE DATABASE testdb
+> SHOW DATABASES
+```
