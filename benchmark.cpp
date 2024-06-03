@@ -9,22 +9,19 @@ using namespace std::chrono;
 #include <mysql/mysql.h>
 #include <curl/curl.h>
 
+// Include unistd.h before LittleD to avoid name conflicts
+#include <unistd.h>
+
 // For MongoDB
-/**
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
+#include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
-using bsoncxx::builder::stream::document;
-using bsoncxx::builder::stream::finalize;
-using bsoncxx::builder::stream::open_document;
-using bsoncxx::builder::stream::close_document;
+#include <bsoncxx/document/view.hpp>
 
-// For LittleD
-#include "LittleD/src/dbparser/dbparser.h" 
-#include "LittleD/src/dbops/db_ops.h"
-*/
 
 // Funciones para medir el tiempo
 #define START_TIMER { auto __start__ = high_resolution_clock::now();
@@ -32,7 +29,7 @@ using bsoncxx::builder::stream::close_document;
                        auto __duration__ = duration_cast<microseconds>(__end__ - __start__).count(); \
                        cout << msg << " took " << __duration__ << " microseconds." << endl; }
 
-/**
+
 void test_mongodb() {
     mongocxx::instance inst{};
     mongocxx::client conn{mongocxx::uri{}};
@@ -41,9 +38,9 @@ void test_mongodb() {
 
     // Insert
     START_TIMER
-    document document{};
-    document << "name" << "test" << "value" << 1;
-    collection.insert_one(document.view());
+    bsoncxx::builder::stream::document insert_document;
+    insert_document << "name" << "test" << "value" << 1;
+    collection.insert_one(insert_document.view());
     END_TIMER("\n-> \n-> MongoDB Insert")
 
     // Read
@@ -55,17 +52,21 @@ void test_mongodb() {
     END_TIMER("\n-> MongoDB Read")
 
     // Update
+    bsoncxx::builder::stream::document update_filter_document;
+    update_filter_document << "name" << "test";
+
+    bsoncxx::builder::stream::document update_set_document;
+    update_set_document << "$set" << bsoncxx::builder::stream::open_document << "value" << 2 << bsoncxx::builder::stream::close_document;
+
     START_TIMER
-    collection.update_one(document{} << "name" << "test" << finalize,
-                          document{} << "$set" << open_document << "value" << 2 << close_document << finalize);
+    collection.update_one(update_filter_document.view(), update_set_document.view());
     END_TIMER("\n-> MongoDB Update")
 
     // Delete
     START_TIMER
-    collection.delete_one(document{} << "name" << "test" << finalize);
+    collection.delete_one(update_filter_document.view());
     END_TIMER("\n-> MongoDB Delete")
 }
-*/
 
 // MariaDB CRUD
 void test_mariadb() {
@@ -168,57 +169,10 @@ void test_influxdb() {
     curl_global_cleanup();
 }
 
-// LittleD CRUD
-/*
-void test_littledb() {
-    const int BYTES_LEN = 400;
-    char memseg[BYTES_LEN];
-    db_query_mm_t mm;
-    db_op_base_t* root;
-    db_tuple_t tuple;
-
-    init_query_mm(&mm, memseg, BYTES_LEN);
-    // Create Table
-    START_TIMER
-    parse(const_cast<char*>("CREATE TABLE testtable (name STRING, value INT);"), &mm);
-    END_TIMER("\n-> LittleD Create Table")
-
-    // Insert
-    START_TIMER
-    parse(const_cast<char*>("INSERT INTO testtable VALUES ('test', 1);"), &mm);
-    END_TIMER("\n-> LittleD Insert")
-
-    // Read
-    START_TIMER
-    init_query_mm(&mm, memseg, BYTES_LEN);
-    root = parse(const_cast<char*>("SELECT * FROM testtable;"), &mm);
-
-    if (root != NULL) {
-        init_tuple(&tuple, root->header->tuple_size, root->header->num_attr, &mm);
-
-        while (next(root, &tuple, &mm) == 1) {
-            cout << "Row: ";
-            for (int i = 0; i < root->header->num_attr; i++) {
-                char* attr_name = root->header->names[i];
-                cout << attr_name << ": " << getstringbyname(&tuple, attr_name, root->header) << ", ";
-            }
-            cout << endl;
-        }
-    } else {
-        cerr << "Read failed: NULL root" << endl;
-    }
-    END_TIMER("\n-> LittleD Read")
-
-    // Delete
-    START_TIMER
-    parse(const_cast<char*>("DELETE FROM testtable WHERE name = 'test';"), &mm);
-    END_TIMER("\n-> LittleD Delete")
-}
-*/
 
 int main() {
     cout << "\n**** Testing MongoDB *****" << endl;
-    //test_mongodb();
+    test_mongodb();
     cout << "\n-----------------------------------------" << endl;
 
     cout << "\n**** Testing MariaDB ****" << endl;
@@ -227,10 +181,6 @@ int main() {
 
     cout << "\n**** Testing InfluxDB ****" << endl;
     test_influxdb();
-    cout << "\n-----------------------------------------" << endl;
-
-    cout << "\n**** Testing LittleD ****" << endl;
-    //test_littledb();
     cout << "\n-----------------------------------------" << endl;
     return 0;
 }

@@ -1,33 +1,27 @@
-# Compiler
+# Variables
 CXX = g++
-CC = gcc
+CC = cc
+CXXFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl -I/usr/local/include/mongocxx -I/usr/local/include/mongocxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi -I/usr/local/include/bsoncxx/v_noabi/bsoncxx/third_party/mnmlstc
+LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lcurl -lmongocxx -lbsoncxx
 
-# Compilation options
-CXXFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl
-CFLAGS = -Wall -g -I/usr/include/mysql -I/usr/include/curl
+# Archivos fuente y objeto
+SOURCES_CPP = benchmark.cpp
+OBJECTS_CPP = $(SOURCES_CPP:.cpp=.o)
 
-# Linker options
-LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lcurl
+# Ejecutable
+TARGET = benchmark
 
-# Build the test executable
-test: test.o LittleD/bin/lib/*.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+# Regla por defecto
+all: $(TARGET)
 
-LittleD/bin/lib/%.o: LittleD/src/dbparser/%.c LittleD/src/dbparser/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+# Regla para el ejecutable
+$(TARGET): $(OBJECTS_CPP)
+	$(CXX) $(OBJECTS_CPP) -o $@ $(LDFLAGS)
 
-# Build the benchmark executable
-benchmark: benchmark.o 
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
-# Build test object
-test.o: test.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Build benchmark object
-benchmark.o: benchmark.cpp
+# Reglas para los archivos objeto
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean up
+# Limpiar
 clean:
 	rm -f test benchmark *.o sensors
