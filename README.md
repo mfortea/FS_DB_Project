@@ -3,7 +3,7 @@ File Systems and DB on Linux Project for the course Operating Systems of the HMU
 
 # 👨🏻‍💻 Used software 
 - LittleD Database ([Github Repository](https://github.com/graemedouglas/LittleD))
-- MongoDB & MongoDB CXX Driver ([Tutorial](https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/installation/linux/#std-label-cpp-installation-linux))
+- MongoDB 4.4.6 & MongoDB CXX Driver ([Tutorial](https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/installation/linux/#std-label-cpp-installation-linux))
 - MariaDB & libmysqlclient-dev (C++ client)
 - InfluxDB & libcurl4-openssl-dev (for C++ client)
 
