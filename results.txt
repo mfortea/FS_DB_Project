@@ -1,0 +1,25 @@
+
+**** Testing MongoDB *****
+MongoDB Create 7064 ms, CPU (user): 9.86693 ,RAM: 14772 KB.
+{ "_id" : { "$oid" : "6660333581fb1ea1950f9541" }, "name" : "test", "value" : 1 }
+MongoDB Read 2016 ms, CPU (user): 59.623 ,RAM: 14772 KB.
+MongoDB Update 2209 ms, CPU (user): 14.8936 ,RAM: 14772 KB.
+MongoDB Delete 644 ms, CPU (user): 37.8882 ,RAM: 14772 KB.
+
+-----------------------------------------
+
+**** Testing MariaDB ****
+MariaDB Create 9662 ms, CPU (user): 0.165597 ,RAM: 15704 KB.
+110 test
+MariaDB Read 2280 ms, CPU (user): 0.789474 ,RAM: 15704 KB.
+MariaDB Update 5208 ms, CPU (user): 0.230415 ,RAM: 15704 KB.
+MariaDB Delete 6253 ms, CPU (user): 0.2079 ,RAM: 15704 KB.
+
+-----------------------------------------
+
+**** Testing InfluxDB ****
+InfluxDB Create 128200 ms, CPU (user): 0.574883 ,RAM: 15704 KB.
+InfluxDB Read 58788 ms, CPU (user): 0.21603 ,RAM: 15704 KB.
+InfluxDB Delete 11387 ms, CPU (user): 0.526917 ,RAM: 15704 KB.
+
+-----------------------------------------

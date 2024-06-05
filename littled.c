@@ -35,14 +35,16 @@ int main(void)
     db_tuple_t tuple;
 
     // Create table
+    START_TIMER_AND_CPU_RAM
     init_query_mm(&mm, memseg, BYTES_LEN);
     parse("CREATE TABLE sensors (id int, temp int);", &mm);
+    END_TIMER_AND_CPU_RAM("-> Little D Create")
 
     // Insert into table
     START_TIMER_AND_CPU_RAM
     init_query_mm(&mm, memseg, BYTES_LEN);
     parse("INSERT INTO sensors VALUES (1, 221);", &mm);
-    END_TIMER_AND_CPU_RAM("-> Little D Create")
+    END_TIMER_AND_CPU_RAM("-> Little D Insert")
 
     // Select from table
     START_TIMER_AND_CPU_RAM
